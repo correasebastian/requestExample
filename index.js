@@ -6,6 +6,15 @@ var prettyjson = require('prettyjson');
 var Queue = require('firebase-queue');
 var Promise = require('bluebird');
 var rp = require('request-promise');
+var requestBlue = Promise.promisifyAll(require('request'));
+
+var RSVP = require('rsvp'); //lightweigth promises used in firebase queue
+
+setTimeout(function() {
+
+    console.log('requestBlue', requestBlue);
+
+}, 15000);
 
 // var url ='http://requestb.in/1jqefqj1';
 // request(url, function (error, response, body) {
@@ -130,6 +139,27 @@ function getMockRp() {
     return rp(url);
 
 }
+
+
+
+function testRequestBlue() {
+    var url = 'http://requestb.in/xcctc6xc';
+
+    function errorFn(error) {
+        console.log(error);
+    }
+
+    function onCompleted(data) {
+        console.log('oncompleted', data);
+        // resolve(data);
+    }
+    /*calls async*/
+    requestBlue.getAsync(url)
+        .then(onCompleted)
+        .catch(errorFn);
+}
+
+// testRequestBlue();
 
 /*
 

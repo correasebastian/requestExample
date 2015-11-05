@@ -1,4 +1,4 @@
->node-debug -p 3550  index.js
+node-debug -p 3550 --save-live-edit true index.js
 
 --save-live-edit true
 

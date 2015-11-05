@@ -11,7 +11,12 @@
   "dependencies": {
     "firebase": "^2.3.1",
     "firebase-queue": "^1.2.1",
+    "fs": "0.0.2",
+    "js-beautify": "^1.5.10",
+    "lwip": "0.0.8",
+    "moment": "^2.10.6",
     "node-inspector": "^0.12.3",
+    "path": "^0.12.7",
     "q": "^1.4.1",
     "request": "^2.65.0",
     "request-promise": "^1.0.2",

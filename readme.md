@@ -3,26 +3,58 @@
 -------para probar queue
 
 rootRef = new Firebase('https://scmlivelinks.firebaseio.com');
-U {k: Yh, path: L, n: ae, lc: false}
+
 queueRef = rootRef.child('queue').child('tasks');
-U {k: Yh, path: L, n: ae, lc: false}
+
 queueRef .push().set({
-     author: "alanisawesome",
+     author: "1",time: Firebase.ServerValue.TIMESTAMP,
      title: "The Turing Machine"
   });
 
 queueRef .push().set({
-     author: "kike",
+     author: "2",time: Firebase.ServerValue.TIMESTAMP,
      title: "The Turing Machine"
   });
 
 queueRef .push().set({
-     author: "kike",time: Firebase.ServerValue.TIMESTAMP,
+     author: "3",time: Firebase.ServerValue.TIMESTAMP,
      title: "The Turing Machine"
   });
 
 
 queueRef .push().set({
-     author: "kike",time: Firebase.ServerValue.TIMESTAMP,rejectObj:{msg:'fallo a proposito'},
+     author: "4",time: Firebase.ServerValue.TIMESTAMP,
      title: "The Turing Machine"
   });
+
+  for (var i = 0; i < 10; i++) {
+    queueRef .push().set({
+     author: i,time: Firebase.ServerValue.TIMESTAMP,
+     title: "The Turing Machine"
+  });
+}
+
+default spec
+{
+    "start_state": null,
+    "in_progress_state": "in_progress",
+    "finished_state": null,
+    "error_state": "error",
+    "timeout": 300000, // 5 minutes
+    "retries": 0 // don't retry
+  }
+
+
+
+---------------------------------
+
+specs=  = rootRef.child('queue').child('specs');
+
+specs.child('inicial').set({
+    "start_state": null,
+    "in_progress_state": "in_progress",
+    "finished_state": null,
+    "error_state": "error",
+    "timeout": 300000, // 5 minutes
+    "retries": 0 // don't retry
+  })

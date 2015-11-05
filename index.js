@@ -14,7 +14,7 @@ setTimeout(function() {
 
     console.log('requestBlue', requestBlue);
 
-}, 15000);
+}, 2000);
 
 // var url ='http://requestb.in/1jqefqj1';
 // request(url, function (error, response, body) {
@@ -75,10 +75,16 @@ linksRef.on("value", function(snapshot) {
 
 
 var queueRef = rootRef.child('queue');
+var options = {
+    'specId': 'inicial',
+    'numWorkers': 5 // una tarea completada por worker simultaneamente
+        // 'sanitize': false,
+        // 'suppressStack': true
+};
 // var ref = new Firebase('https://<your-firebase>.firebaseio.com/queue');
-var queue = new Queue(queueRef, function(data, progress, resolve, reject) {
+var queue = new Queue(queueRef, options, function(data, progress, resolve, reject) {
     // Read and process task data
-    console.log(data);
+    console.log('inicial specs', data);
 
     // Do some work
     progress(50);
@@ -98,23 +104,23 @@ var queue = new Queue(queueRef, function(data, progress, resolve, reject) {
         reject(error);
     }
 
-    function onCompleted(data) {
-        console.log('oncompleted', data)
+    function onCompleted(res) {
+        console.log('oncompleted', res , 'data', data);
         resolve(data);
     }
 
     //using request
-    /*  getMock()
+    getMock(15000)
         .then(onCompleted)
         .catch(errorFn);
-*/
+
     // using rp request-promise
-    getMockRp()
-        .then(onCompleted)
-        .catch(errorFn);
+    /*    getMockRp()
+            .then(onCompleted)
+            .catch(errorFn);*/
 });
 
-function getMock() {
+function getMock(delay) {
     var url = 'http://requestb.in/xcctc6xc';
 
 
@@ -122,11 +128,17 @@ function getMock() {
 
         request(url, function(error, response, body) {
 
-            if (error) {
-                reject(error);
-            } else {
-                resolve(body);
-            }
+            setTimeout(function() {
+
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(body);
+                }
+
+            }, delay);
+
+
         });
 
 
@@ -159,6 +171,35 @@ function testRequestBlue() {
         .catch(errorFn);
 }
 
+
+var optionsSecond = {
+    'specId': 'second',
+    'numWorkers': 5
+};
+// var ref = new Firebase('https://<your-firebase>.firebaseio.com/queue');
+var queueSecond = new Queue(queueRef, optionsSecond, function(data, progress, resolve, reject) {
+    // Read and process task data
+    console.log('segundo specs', data);
+
+    // Do some work
+    progress(80);
+
+
+    function errorFn(error) {
+        reject(error);
+    }
+
+    function onCompleted(res) {
+        console.log('oncompleted second', res);
+        resolve(res);
+    }
+
+    //using request
+    getMock(15000)
+        .then(onCompleted)
+        .catch(errorFn);
+
+});
 // testRequestBlue();
 
 /*

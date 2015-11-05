@@ -1,4 +1,6 @@
->node-debug -p 3550 index.js
+>node-debug -p 3550  index.js
+
+--save-live-edit true
 
 -------para probar queue
 
@@ -58,3 +60,11 @@ specs.child('inicial').set({
     "timeout": 300000, // 5 minutes
     "retries": 0 // don't retry
   })
+
+
+
+
+queueRef .push().set({
+     author: "4",time: Firebase.ServerValue.TIMESTAMP,
+     title: "The Turing Machine", "_state": "go_second"
+  });

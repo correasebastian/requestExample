@@ -110,7 +110,7 @@ var queue = new Queue(queueRef, options, function(data, progress, resolve, rejec
     }
 
     //using request
-    getMock(15000)
+    getMock(4000/*timeout*/, false /*rechazar*/)
         .then(onCompleted)
         .catch(errorFn);
 
@@ -120,7 +120,7 @@ var queue = new Queue(queueRef, options, function(data, progress, resolve, rejec
             .catch(errorFn);*/
 });
 
-function getMock(delay) {
+function getMock(delay, withError) {
     var url = 'http://requestb.in/xcctc6xc';
 
 
@@ -130,7 +130,7 @@ function getMock(delay) {
 
             setTimeout(function() {
 
-                if (error) {
+                if (error || withError) {
                     reject(error);
                 } else {
                     resolve(body);
@@ -195,7 +195,7 @@ var queueSecond = new Queue(queueRef, optionsSecond, function(data, progress, re
     }
 
     //using request
-    getMock(15000)
+    getMock(3000, true)
         .then(onCompleted)
         .catch(errorFn);
 
@@ -252,3 +252,4 @@ var data = {
         }
     }
 }*/
+

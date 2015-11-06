@@ -72,3 +72,15 @@ queueRef .push().set({
      author: "4",time: Firebase.ServerValue.TIMESTAMP,
      title: "The Turing Machine", "_state": "go_second"
   });
+
+  ---dejar de seguir un folder con git
+http://stackoverflow.com/questions/25665479/untrack-folder-locally-in-git-and-push-to-production-without-deleting
+  git update-index --assume-unchanged images/*
+
+  git rm -r --cached folderName
+
+  ----------------------
+
+  rootRef = new Firebase('https://scmtest.firebaseio.com');
+
+queueRef = rootRef.child('uploads').child('queue').child('tasks');

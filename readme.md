@@ -1,3 +1,7 @@
+instalar node-inspector glabally
+
+npm install -g node-inspector
+
 node-debug -p 3550 --save-live-edit true index.js
 
 --save-live-edit true

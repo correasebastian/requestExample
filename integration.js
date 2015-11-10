@@ -9,13 +9,13 @@ Promise.promisifyAll(request);
 
 var rootRef = new Firebase('https://scmtest.firebaseio.com');
 var queueUploadRef = rootRef.child('uploads').child('queue');
+
 var options = {
     // 'specId': 'inicial',
     'numWorkers': 10 // una tarea completada por worker simultaneamente con 100 trabajo mas lento que con 10 no se por que
         // 'sanitize': false,
         // 'suppressStack': true
 };
-
 var queue = new Queue(queueUploadRef, options, function(data, progress, resolve, reject) {
     // Read and process task data
     console.log('inicial specs', data);
@@ -34,6 +34,41 @@ var queue = new Queue(queueUploadRef, options, function(data, progress, resolve,
     uploadBase6Data(data.path)
         .then(onCompleted)
         .catch(exception.catcherQueue('cant upload', reject));
+
+});
+
+
+
+var queueInspeccionRef = rootRef.child('inspecciones').child('queue');
+var optionsInspeccion = {
+    // 'specId': 'inicial',
+    'numWorkers': 10 // una tarea completada por worker simultaneamente con 100 trabajo mas lento que con 10 no se por que
+        // 'sanitize': false,
+        // 'suppressStack': true
+};
+var queueInspeccion = new Queue(queueInspeccionRef, optionsInspeccion, function(data, progress, resolve, reject) {
+    // Read and process task data
+    console.log('inspecciones tasks', data);
+
+    // Do some work
+    progress(50);
+
+
+    function onCompleted(res) {
+        console.log('oncompleted inserted inspeccion', res, 'data', data);
+        resolve();
+    }
+
+    var uri="http://localhost:52154/api/inspecciones";
+    var method="POST";
+    var json={
+        idInspeccion:data.idInspeccion,
+        placa:data.placa
+
+    };
+    requestPromise(uri, method, json)
+        .then(onCompleted)
+        .catch(exception.catcherQueue('cant insert inspeccion', reject));
 
 });
 
@@ -61,6 +96,31 @@ function getMock(delay, withError) {
 
     });
 
+}
+
+function requestPromise(uri, method, json) {
+    var options = {
+        uri: uri,
+        method: method,
+        json:json
+    };
+    return new Promise(function(resolve, reject) {
+
+
+        request(options, function(error, response, body) {
+             console.log(response.status || 'no info');
+// | response.status!==201
+            if (error ) {
+                reject(error);
+            } else {
+                resolve(body);
+            }
+
+
+        });
+
+
+    });
 }
 
 function uploadBase6Data(base64Data) {

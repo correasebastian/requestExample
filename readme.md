@@ -84,3 +84,6 @@ http://stackoverflow.com/questions/25665479/untrack-folder-locally-in-git-and-pu
   rootRef = new Firebase('https://scmtest.firebaseio.com');
 
 queueRef = rootRef.child('uploads').child('queue').child('tasks');
+
+
+node-debug -p 3550 --save-live-edit true integration.js

@@ -87,3 +87,17 @@ queueRef = rootRef.child('uploads').child('queue').child('tasks');
 
 
 node-debug -p 3550 --save-live-edit true integration.js
+
+
+------------------inserting an inspection
+
+rootRef = new Firebase('https://scmtest.firebaseio.com');
+
+queueRef = rootRef.child('inspecciones').child('queue').child('tasks');
+x= queueRef.push()
+
+x.set({
+     idInspeccion:  x.key(),
+time: Firebase.ServerValue.TIMESTAMP,
+     placa: "def656"
+  });

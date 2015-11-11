@@ -25,13 +25,23 @@ var queue = new Queue(queueUploadRef, options, function(data, progress, resolve,
 
 
     function onCompleted(res) {
-        console.log('oncompleted', res, 'data', data);
+        console.log('oncompleted respuesta del servidor', res, 'data con que se inicio', data);
         resolve();
     }
 
     //using request
     // getMock(2000, false)
-    uploadBase6Data(data.path)
+
+    var uri = 'http://localhost:52154/api/test/files';
+    var method = 'POST';
+    var json = {
+        "idFoto": data.idFoto,
+        "idInspeccion": data.idInspeccion,
+        "name": getRandomArbitrary(1, 50000) + '.jpeg',
+        "base64Data": data.base64Data
+    };
+    // uploadBase6Data(data.path)
+    requestPromise(uri, method, json)
         .then(onCompleted)
         .catch(exception.catcherQueue('cant upload', reject));
 
@@ -55,15 +65,15 @@ var queueInspeccion = new Queue(queueInspeccionRef, optionsInspeccion, function(
 
 
     function onCompleted(res) {
-        console.log('oncompleted inserted inspeccion', res, 'data', data);
+        console.log('oncompleted respuesta del servidor', res, 'data con que se inicio', data);
         resolve();
     }
 
-    var uri="http://localhost:52154/api/inspecciones";
-    var method="POST";
-    var json={
-        idInspeccion:data.idInspeccion,
-        placa:data.placa
+    var uri = "http://localhost:52154/api/inspecciones";
+    var method = "POST";
+    var json = {
+        idInspeccion: data.idInspeccion,
+        placa: data.placa
 
     };
     requestPromise(uri, method, json)
@@ -102,15 +112,21 @@ function requestPromise(uri, method, json) {
     var options = {
         uri: uri,
         method: method,
-        json:json
+        json: json
     };
     return new Promise(function(resolve, reject) {
 
 
         request(options, function(error, response, body) {
-             console.log(response.status || 'no info');
-// | response.status!==201
-            if (error ) {
+        /*    console.log(response.statusCode);
+            if (method === 'POST' && response.statusCode !== 201) {
+                if (!error) {
+                    error = 'Error: respuesta diferente a creado';
+                }
+
+            }
+*/
+            if (error) {
                 reject(error);
             } else {
                 resolve(body);

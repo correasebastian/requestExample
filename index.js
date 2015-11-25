@@ -8,7 +8,7 @@ var Promise = require('bluebird');
 var rp = require('request-promise');
 var requestBlue = Promise.promisifyAll(require('request'));
 var path = require("path");
-var moment = require('moment')
+var moment = require('moment');
 
 var RSVP = require('rsvp'); //lightweigth promises used in firebase queue
 var lwip = require('lwip');

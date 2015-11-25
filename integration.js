@@ -5,10 +5,20 @@ var Promise = require('bluebird');
 var path = require("path");
 var moment = require('moment');
 var exception = require('./common/exception');
+var rp = require('request-promise');
 Promise.promisifyAll(request);
 
 var rootRef = new Firebase('https://scmtest.firebaseio.com');
 var queueUploadRef = rootRef.child('uploads').child('queue');
+var queuePushNotificationRef = rootRef.child('pushNotifications').child('queue');
+var pushSecret = 'NjY0MWZhYWM1M2ZkMGI5MDY0NWJiNzI3MjI3NDllNTYzMTk2ZjYyNmQ0NDA5Zjlm'; //base64secret
+var applicationId = 'ca8ecabf';
+var pushHeader = {
+    'X-Ionic-Application-Id': applicationId,
+    'Authorization': 'Basic ' + pushSecret,
+    'Content-Type': 'application/json'
+
+};
 
 var options = {
     // 'specId': 'inicial',
@@ -49,6 +59,86 @@ var queue = new Queue(queueUploadRef, options, function(data, progress, resolve,
 
 
 
+
+
+
+// -------PUSHNOTIFICATION
+var queuePush = new Queue(queuePushNotificationRef, options, function(data, progress, resolve, reject) {
+    // Read and process task data
+    console.log('inicial specs', data);
+
+    // Do some work
+    progress(50);
+
+
+    function onCompleted(res) {
+        console.log('oncompleted respuesta del servidor para push ', res, 'data con que se inicio', data);
+        resolve();
+    }
+
+    //using request
+    // getMock(2000, false)
+
+    var uri = 'https://push.ionic.io/api/v1/push';
+    var method = 'POST';
+    var tokensArray = [];
+    tokensArray.push("fTm2JPEr6Bc:APA91bEKiTRCYqsBx6ZlnmhVKsGj1LbXnQZ9ZQZ3DVwetlJs-aOVPsbO_ZJ-hSxsnhEioF9Vjgc1_G-CuCg2zH0rVSFh2Ske1zYu3YnLttFIla93rkdjWvlGfJR1jHvxe-Et3iwxyhxQ");
+    var json = {
+        "tokens": tokensArray,
+        "notification": {
+            "alert": "Hello World!",
+            "ios": {
+                "badge": 1,
+                "sound": "ping.aiff",
+                "expiry": 1423238641,
+                "priority": 10,
+                "contentAvailable": 1,
+                "payload": {
+                    "key1": "value",
+                    "key2": "value"
+                }
+            },
+            "android": {
+                "collapseKey": "foo",
+                "delayWhileIdle": true,
+                "timeToLive": 300,
+                "payload": {
+                    "key1": "tab.notificaciones"
+                }
+            }
+        }
+    };
+    /* // uploadBase6Data(data.path)
+    requestPromise(uri, method, json, pushHeader)
+        .then(onCompleted)
+        .catch(exception.catcherQueue('cant send push notification', reject));
+*/
+
+    var options = {
+        method: method,
+        uri: uri,
+        body: json,
+        headers: pushHeader,
+        json: true // Automatically stringifies the body to JSON 
+    };
+
+    rp(options)
+        .then(function(parsedBody) {
+            console.log('send');
+            resolve();
+        })
+        .catch(function(err) {
+            console.error(err);
+            reject(err);
+        });
+
+});
+
+
+
+
+
+// INSPECCION ------------------------------------------------------
 var queueInspeccionRef = rootRef.child('inspecciones').child('queue');
 var optionsInspeccion = {
     // 'specId': 'inicial',
@@ -108,17 +198,20 @@ function getMock(delay, withError) {
 
 }
 
-function requestPromise(uri, method, json) {
+function requestPromise(uri, method, json, headers) {
     var options = {
         uri: uri,
         method: method,
         json: json
     };
+    if (headers !== undefined) {
+        options.headers = headers;
+    }
     return new Promise(function(resolve, reject) {
 
 
         request(options, function(error, response, body) {
-        /*    console.log(response.statusCode);
+            /*    console.log(response.statusCode);
             if (method === 'POST' && response.statusCode !== 201) {
                 if (!error) {
                     error = 'Error: respuesta diferente a creado';

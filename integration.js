@@ -76,61 +76,100 @@ var queuePush = new Queue(queuePushNotificationRef, options, function(data, prog
         resolve();
     }
 
-    //using request
-    // getMock(2000, false)
-
     var uri = 'https://push.ionic.io/api/v1/push';
     var method = 'POST';
     var tokensArray = [];
-    tokensArray.push("fTm2JPEr6Bc:APA91bEKiTRCYqsBx6ZlnmhVKsGj1LbXnQZ9ZQZ3DVwetlJs-aOVPsbO_ZJ-hSxsnhEioF9Vjgc1_G-CuCg2zH0rVSFh2Ske1zYu3YnLttFIla93rkdjWvlGfJR1jHvxe-Et3iwxyhxQ");
-    var json = {
-        "tokens": tokensArray,
-        "notification": {
-            "alert": "Hello World!",
-            "ios": {
-                "badge": 1,
-                "sound": "ping.aiff",
-                "expiry": 1423238641,
-                "priority": 10,
-                "contentAvailable": 1,
-                "payload": {
-                    "key1": "value",
-                    "key2": "value"
-                }
-            },
-            "android": {
-                "collapseKey": "foo",
-                "delayWhileIdle": true,
-                "timeToLive": 300,
-                "payload": {
-                    "key1": "tab.notificaciones"
+    //using request
+    // getMock(2000, false)
+    if (data.toGroup) {
+        var groupData = rootRef.child('groups').child(data.to).child('pushTokens');
+
+        groupData.once('value', function(snap) {
+            console.log(snap.val());
+            if (snap.val()) {
+                var tokens = snap.val();
+
+                tokens.forEach(function(token) {
+                    tokensArray.push(token.token);
+                });
+
+                send();
+            } else {
+                reject('cant get the detination user data');
+
+            }
+        });
+    } else {
+        var userMainData = rootRef.child('users').child(data.to).child('mainData');
+
+        userMainData.once('value', function(snap) {
+            var mainData = snap.val();
+            console.log(mainData);
+            if (mainData) {
+                tokensArray.push(mainData.pushToken);
+                send();
+            } else {
+                reject('cant get the detination user data');
+
+            }
+        });
+
+    }
+
+
+    function send() {
+        var json = {
+            "tokens": tokensArray,
+            "notification": {
+                "alert": data.placa,
+                "ios": {
+                    "badge": 1,
+                    "sound": "ping.aiff",
+                    "expiry": 1423238641,
+                    "priority": 10,
+                    "contentAvailable": 1,
+                    "payload": {
+                        "key1": "value",
+                        "key2": "value"
+                    }
+                },
+                "android": {
+                    "collapseKey": "foo",
+                    "delayWhileIdle": true,
+                    "timeToLive": 300,
+                    "payload": {
+                        "key1": "tab.notificaciones"
+                    }
                 }
             }
-        }
-    };
-    /* // uploadBase6Data(data.path)
-    requestPromise(uri, method, json, pushHeader)
-        .then(onCompleted)
-        .catch(exception.catcherQueue('cant send push notification', reject));
-*/
+        };
+        // uploadBase6Data(data.path)
+        requestPromise(uri, method, json, pushHeader)
+            .then(onCompleted)
+            .catch(exception.catcherQueue('cant send push notification', reject));
 
-    var options = {
-        method: method,
-        uri: uri,
-        body: json,
-        headers: pushHeader,
-        json: true // Automatically stringifies the body to JSON 
-    };
+        /* // ESTE METODO TAMBIEN FUNCIONA Y LUCE MAS ORGANIZADO
+            var options = {
+                method: method,
+                uri: uri,
+                body: json,
+                headers: pushHeader,
+                json: true // Automatically stringifies the body to JSON 
+            };
 
-    rp(options)
-        .then(function(parsedBody) {
-            console.log('send');
-            resolve();
-        })
-        .catch(function(err) {
-            console.error(err);
-            reject(err);
-        });
+            rp(options)
+                .then(function(parsedBody) {
+                    console.log('send');
+                    resolve();
+                })
+                .catch(function(err) {
+                    console.error(err);
+                    reject(err);
+                });*/
+
+
+    }
+
 
 });
 

@@ -1,5 +1,7 @@
 instalar node-inspector glabally
 
+node-debug -p 8800 -d 5959  --save-live-edit true integration.js
+
 npm install -g node-inspector
 
 node-debug -p 3550 --save-live-edit true index.js

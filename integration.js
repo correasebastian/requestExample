@@ -1,12 +1,14 @@
 var request = require('request');
-var Firebase = require('firebase');
-var Queue = require('firebase-queue');
 var Promise = require('bluebird');
 var path = require("path");
 var moment = require('moment');
 var exception = require('./common/exception');
-var sisDic = require('./queues/sistemasDictamen');
-var rp = require('request-promise');
+var qSisDic = require('./queues/sistemasDictamen');
+var qInspeccion = require('./queues/inspeccion');
+var qFotos = require('./queues/fotos');
+var qPush = require('./queues/push');
+var qMatDic = require('./queues/matriculasDictamen');
+/*var rp = require('request-promise');
 Promise.promisifyAll(request);
 
 var rootRef = new Firebase('https://scmtest.firebaseio.com');
@@ -19,9 +21,17 @@ var pushHeader = {
     'Authorization': 'Basic ' + pushSecret,
     'Content-Type': 'application/json'
 
-};
+};*/
 
-sisDic.start();
+
+
+// INIT ALL THE QUEUE WORKERS
+
+qSisDic.start();
+qInspeccion.start();
+qFotos.start();
+qPush.start();
+qMatDic.start();
 
 var options = {
     // 'specId': 'inicial',
@@ -29,190 +39,190 @@ var options = {
         // 'sanitize': false,
         // 'suppressStack': true
 };
-var queue = new Queue(queueUploadRef, options, function(data, progress, resolve, reject) {
-    // Read and process task data
-    console.log('inicial specs', data);
+// var queue = new Queue(queueUploadRef, options, function(data, progress, resolve, reject) {
+//     // Read and process task data
+//     console.log('inicial specs', data);
 
-    // Do some work
-    progress(50);
-
-
-    function onCompleted(res) {
-        console.log('oncompleted respuesta del servidor', res, 'data con que se inicio', data);
-        resolve();
-    }
-
-    //using request
-    // getMock(2000, false)
-
-    var uri = 'http://localhost:52154/api/test/files';
-    var method = 'POST';
-    var json = {
-        "idFoto": data.idFoto,
-        "idInspeccion": data.idInspeccion,
-        "name": getRandomArbitrary(1, 50000) + '.jpeg',
-        "base64Data": data.base64Data
-    };
-    // uploadBase6Data(data.path)
-    requestPromise(uri, method, json)
-        .then(onCompleted)
-        .catch(exception.catcherQueue('cant upload', reject));
-
-});
+//     // Do some work
+//     progress(50);
 
 
+//     function onCompleted(res) {
+//         console.log('oncompleted respuesta del servidor', res, 'data con que se inicio', data);
+//         resolve();
+//     }
 
+//     //using request
+//     // getMock(2000, false)
 
+//     var uri = 'http://localhost:52154/api/test/files';
+//     var method = 'POST';
+//     var json = {
+//         "idFoto": data.idFoto,
+//         "idInspeccion": data.idInspeccion,
+//         "name": getRandomArbitrary(1, 50000) + '.jpeg',
+//         "base64Data": data.base64Data
+//     };
+//     // uploadBase6Data(data.path)
+//     requestPromise(uri, method, json)
+//         .then(onCompleted)
+//         .catch(exception.catcherQueue('cant upload', reject));
 
-
-// -------PUSHNOTIFICATION
-var queuePush = new Queue(queuePushNotificationRef, options, function(data, progress, resolve, reject) {
-    // Read and process task data
-    console.log('inicial specs', data);
-
-    // Do some work
-    progress(50);
-
-
-    function onCompleted(res) {
-        console.log('oncompleted respuesta del servidor para push ', res, 'data con que se inicio', data);
-        resolve();
-    }
-
-    var uri = 'https://push.ionic.io/api/v1/push';
-    var method = 'POST';
-    var tokensArray = [];
-    //using request
-    // getMock(2000, false)
-    if (data.toGroup) {
-        var groupData = rootRef.child('groups').child(data.to).child('pushTokens');
-
-        groupData.once('value', function(snap) {
-            console.log(snap.val());
-            if (snap.val()) {
-                var tokens = snap.val();
-
-                tokens.forEach(function(token) {
-                    tokensArray.push(token.token);
-                });
-
-                send();
-            } else {
-                reject('cant get the detination user data');
-
-            }
-        });
-    } else {
-        var userMainData = rootRef.child('users').child(data.to).child('mainData');
-
-        userMainData.once('value', function(snap) {
-            var mainData = snap.val();
-            console.log(mainData);
-            if (mainData) {
-                tokensArray.push(mainData.pushToken);
-                send();
-            } else {
-                reject('cant get the detination user data');
-
-            }
-        });
-
-    }
-
-
-    function send() {
-        var json = {
-            "tokens": tokensArray,
-            "notification": {
-                "alert": data.placa,
-                "ios": {
-                    "badge": 1,
-                    "sound": "ping.aiff",
-                    "expiry": 1423238641,
-                    "priority": 10,
-                    "contentAvailable": 1,
-                    "payload": {
-                        "key1": "value",
-                        "key2": "value"
-                    }
-                },
-                "android": {
-                    "collapseKey": "foo",
-                    "delayWhileIdle": true,
-                    "timeToLive": 300,
-                    "payload": {
-                        "key1": "tab.notificaciones"
-                    }
-                }
-            }
-        };
-        // uploadBase6Data(data.path)
-        requestPromise(uri, method, json, pushHeader)
-            .then(onCompleted)
-            .catch(exception.catcherQueue('cant send push notification', reject));
-
-        /* // ESTE METODO TAMBIEN FUNCIONA Y LUCE MAS ORGANIZADO
-            var options = {
-                method: method,
-                uri: uri,
-                body: json,
-                headers: pushHeader,
-                json: true // Automatically stringifies the body to JSON 
-            };
-
-            rp(options)
-                .then(function(parsedBody) {
-                    console.log('send');
-                    resolve();
-                })
-                .catch(function(err) {
-                    console.error(err);
-                    reject(err);
-                });*/
-
-
-    }
-
-
-});
+// });
 
 
 
 
 
-// INSPECCION ------------------------------------------------------
-var queueInspeccionRef = rootRef.child('inspecciones').child('queue');
-var optionsInspeccion = {
-    // 'specId': 'inicial',
-    'numWorkers': 10 // una tarea completada por worker simultaneamente con 100 trabajo mas lento que con 10 no se por que
-        // 'sanitize': false,
-        // 'suppressStack': true
-};
-var queueInspeccion = new Queue(queueInspeccionRef, optionsInspeccion, function(data, progress, resolve, reject) {
-    // Read and process task data
-    console.log('inspecciones tasks', data);
 
-    // Do some work
-    progress(50);
+// // -------PUSHNOTIFICATION
+// var queuePush = new Queue(queuePushNotificationRef, options, function(data, progress, resolve, reject) {
+//     // Read and process task data
+//     console.log('inicial specs', data);
+
+//     // Do some work
+//     progress(50);
 
 
-    function onCompleted(res) {
-        console.log('oncompleted respuesta del servidor', res, 'data con que se inicio', data);
-        resolve();
-    }
+//     function onCompleted(res) {
+//         console.log('oncompleted respuesta del servidor para push ', res, 'data con que se inicio', data);
+//         resolve();
+//     }
 
-    var uri = "http://localhost:52154/api/inspecciones";
-    var method = "POST";
-    var json = {
-        idInspeccion: data.idInspeccion,
-        placa: data.placa
+//     var uri = 'https://push.ionic.io/api/v1/push';
+//     var method = 'POST';
+//     var tokensArray = [];
+//     //using request
+//     // getMock(2000, false)
+//     if (data.toGroup) {
+//         var groupData = rootRef.child('groups').child(data.to).child('pushTokens');
 
-    };
-    requestPromise(uri, method, json)
-        .then(onCompleted)
-        .catch(exception.catcherQueue('cant insert inspeccion', reject));
+//         groupData.once('value', function(snap) {
+//             console.log(snap.val());
+//             if (snap.val()) {
+//                 var tokens = snap.val();
 
-});
+//                 tokens.forEach(function(token) {
+//                     tokensArray.push(token.token);
+//                 });
+
+//                 send();
+//             } else {
+//                 reject('cant get the detination user data');
+
+//             }
+//         });
+//     } else {
+//         var userMainData = rootRef.child('users').child(data.to).child('mainData');
+
+//         userMainData.once('value', function(snap) {
+//             var mainData = snap.val();
+//             console.log(mainData);
+//             if (mainData) {
+//                 tokensArray.push(mainData.pushToken);
+//                 send();
+//             } else {
+//                 reject('cant get the detination user data');
+
+//             }
+//         });
+
+//     }
+
+
+//     function send() {
+//         var json = {
+//             "tokens": tokensArray,
+//             "notification": {
+//                 "alert": data.placa,
+//                 "ios": {
+//                     "badge": 1,
+//                     "sound": "ping.aiff",
+//                     "expiry": 1423238641,
+//                     "priority": 10,
+//                     "contentAvailable": 1,
+//                     "payload": {
+//                         "key1": "value",
+//                         "key2": "value"
+//                     }
+//                 },
+//                 "android": {
+//                     "collapseKey": "foo",
+//                     "delayWhileIdle": true,
+//                     "timeToLive": 300,
+//                     "payload": {
+//                         "key1": "tab.notificaciones"
+//                     }
+//                 }
+//             }
+//         };
+//         // uploadBase6Data(data.path)
+//         requestPromise(uri, method, json, pushHeader)
+//             .then(onCompleted)
+//             .catch(exception.catcherQueue('cant send push notification', reject));
+
+//         /* // ESTE METODO TAMBIEN FUNCIONA Y LUCE MAS ORGANIZADO
+//             var options = {
+//                 method: method,
+//                 uri: uri,
+//                 body: json,
+//                 headers: pushHeader,
+//                 json: true // Automatically stringifies the body to JSON 
+//             };
+
+//             rp(options)
+//                 .then(function(parsedBody) {
+//                     console.log('send');
+//                     resolve();
+//                 })
+//                 .catch(function(err) {
+//                     console.error(err);
+//                     reject(err);
+//                 });*/
+
+
+//     }
+
+
+// });
+
+
+
+
+
+// // INSPECCION ------------------------------------------------------
+// var queueInspeccionRef = rootRef.child('inspecciones').child('queue');
+// var optionsInspeccion = {
+//     // 'specId': 'inicial',
+//     'numWorkers': 10 // una tarea completada por worker simultaneamente con 100 trabajo mas lento que con 10 no se por que
+//         // 'sanitize': false,
+//         // 'suppressStack': true
+// };
+// var queueInspeccion = new Queue(queueInspeccionRef, optionsInspeccion, function(data, progress, resolve, reject) {
+//     // Read and process task data
+//     console.log('inspecciones tasks', data);
+
+//     // Do some work
+//     progress(50);
+
+
+//     function onCompleted(res) {
+//         console.log('oncompleted respuesta del servidor', res, 'data con que se inicio', data);
+//         resolve();
+//     }
+
+//     var uri = "http://localhost:52154/api/inspecciones";
+//     var method = "POST";
+//     var json = {
+//         idInspeccion: data.idInspeccion,
+//         placa: data.placa
+
+//     };
+//     requestPromise(uri, method, json)
+//         .then(onCompleted)
+//         .catch(exception.catcherQueue('cant insert inspeccion', reject));
+
+// });
 
 function getMock(delay, withError) {
     var url = 'http://requestb.in/xcctc6xc';
@@ -323,6 +333,6 @@ unirest.post('http://mockbin.com/request')
   console.log(response.body);
 });*/
 
-function getRandomArbitrary(min, max) {
-    return Math.random() * (max - min) + min;
-}
+// function getRandomArbitrary(min, max) {
+//     return Math.random() * (max - min) + min;
+// }

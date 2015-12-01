@@ -22,20 +22,20 @@ module.exports = (function() {
 
 
         // var rootRef = new Firebase('https://scmtest.firebaseio.com');
-        var queueRef = root.child('dictamenes').child('sistemas').child('queue');
+        var queueRef = root.child('inspecciones').child('queue');
         var queue = new Queue(queueRef, options, function(data, progress, resolve, reject) {
             // Read and process task data
-            console.log('sistemasdictamen', data);
+            console.log('inspecciones', data);
 
             // Do some work
-            progress(50);
+            // progress(50);
 
-            var uri = 'http://localhost:52154/api/inspeccionesSistemas';
-            var method = 'POST';
+            var uri = "http://localhost:52154/api/inspecciones";
+            var method = "POST";
             var json = {
-                "idInspeccion": "-K43e1uhgNoW-XlAqcIw",
-                "idSistemasDictamen": 777,
-                "fecha": "2015-11-30T20:43:19.0647999-05:00"
+                idInspeccion: data.idInspeccion,
+                placa: data.placa
+
             };
 
             // ESTE METODO TAMBIEN FUNCIONA Y LUCE MAS ORGANIZADO
@@ -48,7 +48,7 @@ module.exports = (function() {
 
             rp(options)
                 .then(function(parsedBody) {
-                    console.log('ok sistemas dictamen');
+                    console.log('ok inspeccion');
                     resolve();
                 })
                 .catch(function(err) {

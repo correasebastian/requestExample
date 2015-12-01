@@ -22,20 +22,21 @@ module.exports = (function() {
 
 
         // var rootRef = new Firebase('https://scmtest.firebaseio.com');
-        var queueRef = root.child('dictamenes').child('sistemas').child('queue');
+        var queueRef = root.child('uploads').child('queue');
         var queue = new Queue(queueRef, options, function(data, progress, resolve, reject) {
             // Read and process task data
-            console.log('sistemasdictamen', data);
+            console.log('fotos', data);
 
             // Do some work
-            progress(50);
+            // progress(50);
 
-            var uri = 'http://localhost:52154/api/inspeccionesSistemas';
+            var uri = 'http://localhost:52154/api/test/files';
             var method = 'POST';
             var json = {
-                "idInspeccion": "-K43e1uhgNoW-XlAqcIw",
-                "idSistemasDictamen": 777,
-                "fecha": "2015-11-30T20:43:19.0647999-05:00"
+                "idFoto": data.idFoto,
+                "idInspeccion": data.idInspeccion,
+                "name": getRandomArbitrary(1, 50000) + '.jpeg',
+                "base64Data": data.base64Data
             };
 
             // ESTE METODO TAMBIEN FUNCIONA Y LUCE MAS ORGANIZADO
@@ -48,7 +49,7 @@ module.exports = (function() {
 
             rp(options)
                 .then(function(parsedBody) {
-                    console.log('ok sistemas dictamen');
+                    console.log('ok fotos');
                     resolve();
                 })
                 .catch(function(err) {
@@ -58,6 +59,10 @@ module.exports = (function() {
 
         });
 
+    }
+
+    function getRandomArbitrary(min, max) {
+        return Math.random() * (max - min) + min;
     }
 
 

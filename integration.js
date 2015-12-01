@@ -5,6 +5,7 @@ var Promise = require('bluebird');
 var path = require("path");
 var moment = require('moment');
 var exception = require('./common/exception');
+var sisDic = require('./queues/sistemasDictamen');
 var rp = require('request-promise');
 Promise.promisifyAll(request);
 
@@ -19,6 +20,8 @@ var pushHeader = {
     'Content-Type': 'application/json'
 
 };
+
+sisDic.start();
 
 var options = {
     // 'specId': 'inicial',

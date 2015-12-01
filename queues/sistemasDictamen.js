@@ -2,6 +2,8 @@
 var Queue = require('firebase-queue');
 var rp = require('request-promise');
 var constants = require('../common/constants');
+var Promise = require('bluebird');
+var exception = require('../common/exception');
 module.exports = (function() {
     var root = constants.fbRoot;
     console.log(constants);
@@ -30,34 +32,70 @@ module.exports = (function() {
             // Do some work
             progress(50);
 
-            var uri = 'http://localhost:52154/api/inspeccionesSistemas';
-            var method = 'POST';
-            var json = {
-                "idInspeccion": "-K43e1uhgNoW-XlAqcIw",
-                "idSistemasDictamen": 777,
-                "fecha": "2015-11-30T20:43:19.0647999-05:00"
-            };
+            getToSQL(data.idDictamen)
+                .then(onGetSisDic)
+                .then(postData)
+                .catch(exception.catcherQueue('cant insert sisDictamen', reject));
 
-            // ESTE METODO TAMBIEN FUNCIONA Y LUCE MAS ORGANIZADO
-            var options = {
-                method: method,
-                uri: uri,
-                body: json,
-                json: true // Automatically stringifies the body to JSON 
-            };
+            function onGetSisDic(sisDicSql) {
+                var uri = 'http://localhost:52154/api/inspeccionesSistemas';
+                var method = 'POST';
+                var json = {
+                    "idInspeccion": data.idInspeccion,
+                    "idSistemasDictamen": sisDicSql
+                };
 
-            rp(options)
-                .then(function(parsedBody) {
-                    console.log('ok sistemas dictamen');
-                    resolve();
-                })
-                .catch(function(err) {
-                    console.error(err);
-                    reject(err);
-                });
+                // ESTE METODO TAMBIEN FUNCIONA Y LUCE MAS ORGANIZADO
+                var options = {
+                    method: method,
+                    uri: uri,
+                    body: json,
+                    json: true // Automatically stringifies the body to JSON 
+                };
+
+                return options;
+
+            }
+
+            function postData(options) {
+
+                return rp(options)
+                    .then(function(parsedBody) {
+                        console.log('ok sistemas dictamen');
+                        resolve();
+                    });
+
+            }
+
+
 
         });
 
+    }
+
+    function getToSQL(fbSisDic) {
+        return new Promise(function(resolve, reject) {
+
+            var sisDic = root.child('config/dictamenes/sura/sistemasIdentificacion').child(fbSisDic);
+
+            sisDic.once('value', function(snap) {
+
+                var sisDicObj = snap.val();
+                console.log('getToSQL', sisDicObj);
+                if (sisDicObj) {
+                    var sisDicSQL = sisDicObj.idsistemasdictamen;
+                    resolve(sisDicSQL);
+
+                }
+                else{
+                  reject('cant find sisDicObj');  
+                }
+
+                
+
+            });
+
+        });
     }
 
 

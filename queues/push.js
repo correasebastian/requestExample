@@ -93,8 +93,11 @@ module.exports = (function() {
 
 
                     }
+                    else{
+                        reject('cant find tokens in group');
+                    }
 
-                    reject('cant find tokens in group');
+                    
 
                 });
             } else {
@@ -107,7 +110,10 @@ module.exports = (function() {
                         tokensArray.push(mainData.pushToken);
                         resolve(tokensArray);
                     }
-                    reject('cant find tokens in user');
+                    else{
+                        reject('cant find tokens in user');
+                    }
+                    
                 });
 
             }

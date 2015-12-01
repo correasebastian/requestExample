@@ -2,6 +2,8 @@
 var Queue = require('firebase-queue');
 var rp = require('request-promise');
 var constants = require('../common/constants');
+var Promise = require('bluebird');
+var exception = require('../common/exception');
 module.exports = (function() {
     var root = constants.fbRoot;
     console.log(constants);
@@ -30,34 +32,70 @@ module.exports = (function() {
             // Do some work
             progress(50);
 
-            var uri = 'http://localhost:52154/api/inspeccionesMatriculas';
-            var method = 'POST';
-            var json = {
-                "idInspeccion": "-K43e1uhgNoW-XlAqcIw",
-                "idMatriculaDictamen": 777,
-                "fecha": "2015-11-30T20:43:19.0647999-05:00"
-            };
 
-            // ESTE METODO TAMBIEN FUNCIONA Y LUCE MAS ORGANIZADO
-            var options = {
-                method: method,
-                uri: uri,
-                body: json,
-                json: true // Automatically stringifies the body to JSON 
-            };
+            getToSQL(data.idDictamen)
+                .then(onGetMatDic)
+                .then(postData)
+                .catch(exception.catcherQueue('cant insert matDictamen', reject));
 
-            rp(options)
-                .then(function(parsedBody) {
-                    console.log('ok matricula dictamen');
-                    resolve();
-                })
-                .catch(function(err) {
-                    console.error(err);
-                    reject(err);
-                });
+            function onGetMatDic(matDicSql) {
+                var uri = 'http://localhost:52154/api/inspeccionesMatriculas';
+                var method = 'POST';
+                var json = {
+                    "idInspeccion": data.idInspeccion,
+                    "idMatriculaDictamen": matDicSql
+                };
+
+                // ESTE METODO TAMBIEN FUNCIONA Y LUCE MAS ORGANIZADO
+                var options = {
+                    method: method,
+                    uri: uri,
+                    body: json,
+                    json: true // Automatically stringifies the body to JSON 
+                };
+
+                return options;
+
+            }
+
+            function postData(options) {
+
+                return rp(options)
+                    .then(function(parsedBody) {
+                        console.log('ok matricula dictamen');
+                        resolve();
+                    });
+
+            }
+
+
 
         });
 
+    }
+
+    function getToSQL(fbMatDic) {
+        return new Promise(function(resolve, reject) {
+
+            var matDic = root.child('config/dictamenes/sura/matriculas').child(fbMatDic);
+
+            matDic.once('value', function(snap) {
+
+                var matDicObj = snap.val();
+                console.log('getToSQL', matDicObj);
+                if (matDicObj) {
+                    var matDicSQL = matDicObj.idmatriculadictamen;
+                    resolve(matDicSQL);
+
+                } else {
+                    reject('cant find matDicObj');
+                }
+
+
+
+            });
+
+        });
     }
 
 

@@ -15,6 +15,7 @@ module.exports = (function() {
         console.log('started');
 
         var options = {
+            'specId': 'retry',
             'numWorkers': 10 // una tarea completada por worker simultaneamente con 100 trabajo mas lento que con 10 no se por que
 
         };

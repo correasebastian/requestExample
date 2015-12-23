@@ -15,7 +15,7 @@ module.exports = (function() {
         console.log('started');
 
         var options = {
-            'specId': 'retry',
+            // 'specId': 'retry',
             'numWorkers': 10 // una tarea completada por worker simultaneamente con 100 trabajo mas lento que con 10 no se por que
 
         };
@@ -23,7 +23,8 @@ module.exports = (function() {
 
 
         // var rootRef = new Firebase('https://scmtest.firebaseio.com');
-        var queueRef = root.child('inspecciones').child('queue');
+        // child('workers')
+        var queueRef = root.child('workers').child('inspecciones').child('queue');
         var queue = new Queue(queueRef, options, function(data, progress, resolve, reject) {
             // Read and process task data
             console.log('inspecciones', data);
